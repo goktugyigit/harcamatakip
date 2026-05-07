@@ -1,0 +1,8 @@
+name = "harcama-takip"
+compatibility_date = "2026-05-01"
+pages_build_output_dir = "./public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "harcama-takip-db"
+database_id = "df9c8260-88f9-4013-bac7-e5f48f14ccb6"
