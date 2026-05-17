@@ -40,18 +40,16 @@ export async function onRequestGet({ request, env }) {
   const user = await getCurrentUser(request, env.DB);
   if (!user) return unauthorized();
 
-  const person = (user.display_name || "").trim();
-  if (!person) return json({ expenses: [] });
-
+  // Tüm harcamalar herkese görünür (paylaşılı görünüm).
+  // Silme yetkisi backend'de DELETE endpoint'inde kullanıcının kendi person'ına kısıtlanmış.
   const { results } = await env.DB.prepare(
     `SELECT e.id, e.date, e.person, e.description, e.payment_method, e.note,
             e.amount_cents, e.created_at, u.email AS entered_by
        FROM expenses e
        JOIN users u ON e.user_id = u.id
-      WHERE e.person = ?
       ORDER BY e.date DESC, e.id DESC
-      LIMIT 500`,
-  ).bind(person).all();
+      LIMIT 2000`,
+  ).all();
 
   return json({ expenses: results });
 }

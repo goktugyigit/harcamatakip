@@ -476,6 +476,99 @@
     background: var(--bg-3); color: var(--text-2);
     font-size: 12px; font-weight: 500;
   }
+  .me-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 1px 8px; border-radius: 99px;
+    background: var(--black); color: #fff;
+    font-size: 12px; font-weight: 500;
+  }
+  .pd-readonly { opacity: 0.95; }
+  .pd-del-placeholder { width: 38px; height: 1px; }
+
+  /* ───── Filtre paneli ───── */
+  .filter-controls {
+    display: flex; align-items: center; gap: 10px;
+    margin-left: auto;
+  }
+  .filter-info {
+    font-size: 12px; color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  @media (max-width: 480px) { .filter-info { display: none; } }
+  #filter-toggle {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; padding: 7px 12px;
+  }
+  #filter-toggle svg {
+    width: 14px; height: 14px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .filter-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 18px; height: 18px; padding: 0 5px;
+    background: var(--black); color: #fff;
+    border-radius: 99px;
+    font-size: 11px; font-weight: 600;
+    line-height: 1;
+  }
+  #filter-toggle.has-active .filter-badge { background: var(--danger); }
+
+  .filter-panel {
+    padding: 14px clamp(16px, 4vw, 22px);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-2);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .filter-panel[hidden] { display: none; }
+  .filter-row { display: flex; flex-direction: column; gap: 6px; }
+  .filter-row label, .filter-field label {
+    font-size: 11px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 0;
+  }
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .filter-field { display: flex; flex-direction: column; gap: 6px; }
+  .filter-field input, .filter-field select {
+    padding: 8px 10px; font-size: 13px;
+  }
+  .filter-actions {
+    display: flex; align-items: flex-end; justify-content: flex-end;
+    gap: 8px;
+  }
+  .filter-actions button { font-size: 13px; padding: 8px 14px; }
+
+  .chip-group {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    max-height: 180px; overflow-y: auto;
+    padding: 4px 0;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 99px;
+    font-size: 12px; color: var(--text-2); font-weight: 500;
+    cursor: pointer; user-select: none;
+    transition: background 0.1s, border-color 0.1s, color 0.1s;
+    margin-bottom: 0;
+  }
+  .chip input { display: none; }
+  .chip:hover { border-color: var(--border-strong); }
+  .chip.on {
+    background: var(--black); color: #fff; border-color: var(--black);
+  }
+  .chip-group .dim { font-size: 12px; padding: 4px; }
+
+  @media (max-width: 480px) {
+    .filter-panel { padding: 12px 14px; gap: 10px; }
+    .filter-field input, .filter-field select { font-size: 16px; padding: 10px 12px; }
+    .chip-group { max-height: 160px; }
+  }
   .dim { color: var(--muted-2); }
   .note-cell { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
@@ -882,6 +975,58 @@
     <section class="card">
       <div class="card-head">
         <h2>Son Harcamalar</h2>
+        <div class="filter-controls">
+          <span class="filter-info" id="filter-info"></span>
+          <button type="button" class="ghost" id="filter-toggle" aria-expanded="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+            Filtrele
+            <span class="filter-badge" id="filter-badge" hidden>0</span>
+          </button>
+        </div>
+      </div>
+      <div class="filter-panel" id="filter-panel" hidden>
+        <div class="filter-row">
+          <label for="f-search">Arama (açıklama, not, ödeme)</label>
+          <input type="search" id="f-search" placeholder="ör. yakıt, yemek, işçi…" autocomplete="off" />
+        </div>
+        <div class="filter-row">
+          <label>Kişiler</label>
+          <div class="chip-group" id="f-people"></div>
+        </div>
+        <div class="filter-row">
+          <label>Ödeme yöntemi</label>
+          <div class="chip-group" id="f-methods"></div>
+        </div>
+        <div class="filter-grid">
+          <div class="filter-field">
+            <label for="f-date-from">Başlangıç tarihi</label>
+            <input type="date" id="f-date-from" />
+          </div>
+          <div class="filter-field">
+            <label for="f-date-to">Bitiş tarihi</label>
+            <input type="date" id="f-date-to" />
+          </div>
+          <div class="filter-field">
+            <label for="f-amount-min">Min tutar (₺)</label>
+            <input type="number" id="f-amount-min" step="0.01" min="0" placeholder="0" inputmode="decimal" />
+          </div>
+          <div class="filter-field">
+            <label for="f-amount-max">Max tutar (₺)</label>
+            <input type="number" id="f-amount-max" step="0.01" min="0" placeholder="∞" inputmode="decimal" />
+          </div>
+          <div class="filter-field">
+            <label for="f-sort">Sıralama</label>
+            <select id="f-sort">
+              <option value="date-desc">Tarih: Yeniden eskiye</option>
+              <option value="date-asc">Tarih: Eskiden yeniye</option>
+              <option value="amount-desc">Tutar: Büyükten küçüğe</option>
+              <option value="amount-asc">Tutar: Küçükten büyüğe</option>
+            </select>
+          </div>
+          <div class="filter-field filter-actions">
+            <button type="button" class="ghost" id="f-reset">Sıfırla</button>
+          </div>
+        </div>
       </div>
       <div class="table-wrap" id="list-wrap"></div>
     </section>
@@ -1171,6 +1316,8 @@ function renderApp(user) {
   document.getElementById("settings-btn").addEventListener("click", openSettingsModal);
   document.getElementById("merge-people-btn").addEventListener("click", openMergePeopleModal);
 
+  resetFilters();
+  bindFilterControls();
   applyMergeVisibility();
   handleRoute();
 
@@ -1285,6 +1432,215 @@ async function promptInitialDisplayName(user) {
 let currentPeople = [];
 let currentExpenses = [];
 
+const filterState = {
+  search: "",
+  people: new Set(),
+  methods: new Set(),
+  dateFrom: "",
+  dateTo: "",
+  amountMin: "",
+  amountMax: "",
+  sort: "date-desc",
+};
+
+function resetFilters() {
+  filterState.search = "";
+  filterState.people.clear();
+  filterState.methods.clear();
+  filterState.dateFrom = "";
+  filterState.dateTo = "";
+  filterState.amountMin = "";
+  filterState.amountMax = "";
+  filterState.sort = "date-desc";
+}
+
+function filterActiveCount() {
+  let c = 0;
+  if (filterState.search) c++;
+  if (filterState.people.size) c++;
+  if (filterState.methods.size) c++;
+  if (filterState.dateFrom || filterState.dateTo) c++;
+  if (filterState.amountMin || filterState.amountMax) c++;
+  if (filterState.sort !== "date-desc") c++;
+  return c;
+}
+
+function applyFilters(items) {
+  let filtered = items.slice();
+  const q = filterState.search.trim().toLowerCase();
+  if (q) filtered = filtered.filter((e) =>
+    (e.description || "").toLowerCase().includes(q) ||
+    (e.note || "").toLowerCase().includes(q) ||
+    (e.payment_method || "").toLowerCase().includes(q),
+  );
+  if (filterState.people.size) {
+    filtered = filtered.filter((e) => filterState.people.has(e.person || ""));
+  }
+  if (filterState.methods.size) {
+    filtered = filtered.filter((e) => filterState.methods.has(e.payment_method || ""));
+  }
+  if (filterState.dateFrom) {
+    filtered = filtered.filter((e) => String(e.date || "") >= filterState.dateFrom);
+  }
+  if (filterState.dateTo) {
+    filtered = filtered.filter((e) => String(e.date || "") <= filterState.dateTo);
+  }
+  if (filterState.amountMin !== "" && Number.isFinite(Number(filterState.amountMin))) {
+    const minC = Math.round(Number(filterState.amountMin) * 100);
+    filtered = filtered.filter((e) => Number(e.amount_cents) >= minC);
+  }
+  if (filterState.amountMax !== "" && Number.isFinite(Number(filterState.amountMax))) {
+    const maxC = Math.round(Number(filterState.amountMax) * 100);
+    filtered = filtered.filter((e) => Number(e.amount_cents) <= maxC);
+  }
+  switch (filterState.sort) {
+    case "date-asc":
+      filtered.sort((a, b) => String(a.date).localeCompare(String(b.date)) || a.id - b.id);
+      break;
+    case "amount-desc":
+      filtered.sort((a, b) => Number(b.amount_cents) - Number(a.amount_cents));
+      break;
+    case "amount-asc":
+      filtered.sort((a, b) => Number(a.amount_cents) - Number(b.amount_cents));
+      break;
+    case "date-desc":
+    default:
+      filtered.sort((a, b) => String(b.date).localeCompare(String(a.date)) || b.id - a.id);
+  }
+  return filtered;
+}
+
+function refreshList() {
+  const filtered = applyFilters(currentExpenses);
+  renderList({ expenses: filtered });
+  updateFilterInfo(filtered);
+}
+
+function updateFilterInfo(filtered) {
+  const info = document.getElementById("filter-info");
+  const badge = document.getElementById("filter-badge");
+  const toggle = document.getElementById("filter-toggle");
+  if (!info || !badge || !toggle) return;
+  const active = filterActiveCount();
+  const total = filtered.reduce((a, e) => a + Number(e.amount_cents), 0);
+  const label = active > 0
+    ? `${filtered.length} / ${currentExpenses.length} kayıt · ${fmtTRY(total)}`
+    : `${currentExpenses.length} kayıt · ${fmtTRY(total)}`;
+  info.textContent = label;
+  if (active > 0) {
+    badge.textContent = active;
+    badge.hidden = false;
+    toggle.classList.add("has-active");
+  } else {
+    badge.hidden = true;
+    toggle.classList.remove("has-active");
+  }
+}
+
+function renderFilterChips() {
+  const peopleEl = document.getElementById("f-people");
+  const methodsEl = document.getElementById("f-methods");
+  if (!peopleEl || !methodsEl) return;
+
+  const people = [...new Set(currentExpenses.map((e) => e.person).filter(Boolean))].sort((a, b) =>
+    String(a).localeCompare(String(b), "tr"),
+  );
+  const methods = [...new Set(currentExpenses.map((e) => e.payment_method).filter(Boolean))].sort((a, b) =>
+    String(a).localeCompare(String(b), "tr"),
+  );
+
+  // Mevcut seçimleri koru ama listede olmayanları temizle
+  for (const p of [...filterState.people]) if (!people.includes(p)) filterState.people.delete(p);
+  for (const m of [...filterState.methods]) if (!methods.includes(m)) filterState.methods.delete(m);
+
+  const myName = (currentUser?.display_name || "").trim().toLowerCase();
+  peopleEl.innerHTML = people.length
+    ? people.map((p) => {
+        const on = filterState.people.has(p);
+        const isMe = myName && String(p).toLowerCase() === myName;
+        return `
+          <label class="chip${on ? " on" : ""}">
+            <input type="checkbox" data-person="${escapeHtml(p)}" ${on ? "checked" : ""} />
+            ${escapeHtml(p)}${isMe ? " (sen)" : ""}
+          </label>`;
+      }).join("")
+    : '<span class="dim">Kişi yok</span>';
+
+  methodsEl.innerHTML = methods.length
+    ? methods.map((m) => {
+        const on = filterState.methods.has(m);
+        return `
+          <label class="chip${on ? " on" : ""}">
+            <input type="checkbox" data-method="${escapeHtml(m)}" ${on ? "checked" : ""} />
+            ${escapeHtml(m)}
+          </label>`;
+      }).join("")
+    : '<span class="dim">Yöntem yok</span>';
+
+  peopleEl.querySelectorAll("[data-person]").forEach((inp) => {
+    inp.addEventListener("change", () => {
+      const v = inp.dataset.person;
+      if (inp.checked) filterState.people.add(v);
+      else filterState.people.delete(v);
+      inp.parentElement.classList.toggle("on", inp.checked);
+      refreshList();
+    });
+  });
+  methodsEl.querySelectorAll("[data-method]").forEach((inp) => {
+    inp.addEventListener("change", () => {
+      const v = inp.dataset.method;
+      if (inp.checked) filterState.methods.add(v);
+      else filterState.methods.delete(v);
+      inp.parentElement.classList.toggle("on", inp.checked);
+      refreshList();
+    });
+  });
+}
+
+function bindFilterControls() {
+  const panel = document.getElementById("filter-panel");
+  const toggle = document.getElementById("filter-toggle");
+  if (!panel || !toggle) return;
+
+  toggle.addEventListener("click", () => {
+    panel.hidden = !panel.hidden;
+    toggle.setAttribute("aria-expanded", String(!panel.hidden));
+  });
+
+  const bindInput = (id, key) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = filterState[key];
+    el.addEventListener("input", () => {
+      filterState[key] = el.value;
+      refreshList();
+    });
+  };
+  bindInput("f-search", "search");
+  bindInput("f-date-from", "dateFrom");
+  bindInput("f-date-to", "dateTo");
+  bindInput("f-amount-min", "amountMin");
+  bindInput("f-amount-max", "amountMax");
+
+  const sortEl = document.getElementById("f-sort");
+  sortEl.value = filterState.sort;
+  sortEl.addEventListener("change", () => {
+    filterState.sort = sortEl.value;
+    refreshList();
+  });
+
+  document.getElementById("f-reset").addEventListener("click", () => {
+    resetFilters();
+    ["f-search", "f-date-from", "f-date-to", "f-amount-min", "f-amount-max"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+    document.getElementById("f-sort").value = "date-desc";
+    renderFilterChips();
+    refreshList();
+  });
+}
+
 async function refreshData() {
   try {
     const [sum, list, people] = await Promise.all([
@@ -1296,7 +1652,8 @@ async function refreshData() {
     currentExpenses = Array.isArray(list?.expenses) ? list.expenses : [];
     refreshPersonDatalist();
     renderSummary(sum);
-    renderList(list);
+    renderFilterChips();
+    refreshList();
   } catch (err) {
     console.error(err);
   }
@@ -1310,10 +1667,10 @@ function refreshPersonDatalist() {
     .join("");
 }
 
-function pdItemHTML(e) {
+function pdItemHTML(e, canDelete) {
   const meta = [fmtDate(e.date)];
   return `
-    <div class="pd-item" data-id="${e.id}">
+    <div class="pd-item${canDelete ? "" : " pd-readonly"}" data-id="${e.id}">
       <div class="pd-main">
         <div class="pd-desc${e.description ? "" : " empty"}">${e.description ? escapeHtml(e.description) : "Açıklama yok"}</div>
         <div class="pd-meta">
@@ -1323,20 +1680,24 @@ function pdItemHTML(e) {
         ${e.note ? `<div class="pd-note">${escapeHtml(e.note)}</div>` : ""}
       </div>
       <div class="pd-amount">${fmtTRY(e.amount_cents)}</div>
-      <button type="button" class="row-del-btn pd-del" data-del-id="${e.id}" aria-label="Sil" title="Sil">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-      </button>
+      ${canDelete
+        ? `<button type="button" class="row-del-btn pd-del" data-del-id="${e.id}" aria-label="Sil" title="Sil">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </button>`
+        : `<div class="pd-del-placeholder" aria-hidden="true"></div>`}
     </div>
   `;
 }
 
 async function openPersonDetailModal(personName) {
-  // currentExpenses zaten sadece kendi kayıtlarımız (backend filtreliyor)
   let items = currentExpenses.filter((e) => (e.person || "") === personName);
   if (items.length === 0) {
     toast("Bu kişide kayıt yok", "error");
     return;
   }
+
+  const myName = (currentUser?.display_name || "").trim().toLowerCase();
+  const canDelete = myName && personName.toLowerCase() === myName;
 
   const uniqueDescriptions = [
     ...new Set(items.map((e) => (e.description || "").trim()).filter(Boolean)),
@@ -1381,8 +1742,8 @@ async function openPersonDetailModal(personName) {
         if (filtered.length === 0) {
           listEl.innerHTML = '<div class="pd-empty">Eşleşen kayıt yok</div>';
         } else {
-          listEl.innerHTML = filtered.map(pdItemHTML).join("");
-          listEl.querySelectorAll("[data-del-id]").forEach((btn) => {
+          listEl.innerHTML = filtered.map((e) => pdItemHTML(e, canDelete)).join("");
+          if (canDelete) listEl.querySelectorAll("[data-del-id]").forEach((btn) => {
             btn.addEventListener("click", async () => {
               const id = Number(btn.dataset.delId);
               const row = items.find((x) => x.id === id);
@@ -1595,9 +1956,9 @@ function renderStats(elId, items, total, opts = {}) {
       const share = total > 0 ? Math.round((Number(p.total_cents) / total) * 100) : 0;
       const isSelf = peopleMode && myName && String(name).toLowerCase() === myName;
       const classes = ["stat-row"];
-      if (isSelf) classes.push("clickable", "self");
-      else if (peopleMode) classes.push("locked");
-      const dataAttr = isSelf ? ` data-person="${escapeHtml(name)}"` : "";
+      if (peopleMode && name !== "—") classes.push("clickable");
+      if (isSelf) classes.push("self");
+      const dataAttr = peopleMode && name !== "—" ? ` data-person="${escapeHtml(name)}"` : "";
       return `
         <div class="${classes.join(" ")}"${dataAttr}>
           <div class="stat-top">
@@ -1629,11 +1990,13 @@ function renderList({ expenses }) {
     el.innerHTML = '<div class="empty">Henüz kayıt yok</div>';
     return;
   }
+  const myName = (currentUser?.display_name || "").trim().toLowerCase();
   el.innerHTML = `
     <table>
       <thead>
         <tr>
           <th>Tarih</th>
+          <th>Kim</th>
           <th>Ne için</th>
           <th>Nasıl</th>
           <th style="text-align:right">Tutar</th>
@@ -1642,10 +2005,15 @@ function renderList({ expenses }) {
       </thead>
       <tbody>
         ${expenses
-          .map(
-            (e) => `
+          .map((e) => {
+            const isMine = myName && String(e.person || "").toLowerCase() === myName;
+            const personHTML = e.person
+              ? `<span${isMine ? ' class="me-pill"' : ""}>${escapeHtml(e.person)}</span>`
+              : '<span class="dim">—</span>';
+            return `
           <tr data-id="${e.id}">
             <td data-label="Tarih">${escapeHtml(fmtDate(e.date))}</td>
+            <td data-label="Kim">${personHTML}</td>
             <td data-label="Ne için">
               ${dim(e.description)}
               ${e.note ? `<div class="note-cell">${escapeHtml(e.note)}</div>` : ""}
@@ -1653,12 +2021,14 @@ function renderList({ expenses }) {
             <td data-label="Nasıl">${e.payment_method ? `<span class="pill">${escapeHtml(e.payment_method)}</span>` : '<span class="dim">—</span>'}</td>
             <td class="amount" data-label="Tutar">${fmtTRY(e.amount_cents)}</td>
             <td class="row-actions">
-              <button type="button" class="row-del-btn" data-del-id="${e.id}" aria-label="Sil" title="Sil">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-              </button>
+              ${isMine
+                ? `<button type="button" class="row-del-btn" data-del-id="${e.id}" aria-label="Sil" title="Sil">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                  </button>`
+                : ""}
             </td>
-          </tr>`,
-          )
+          </tr>`;
+          })
           .join("")}
       </tbody>
     </table>
