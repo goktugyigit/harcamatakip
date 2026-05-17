@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(git init *)",
+      "Bash(git -c safe.directory='*' status --short)",
+      "Bash(git config *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(node --check functions/api/expenses/\\\\[id\\\\].js)",
+      "Bash(node --check functions/api/people.js)",
+      "Bash(node --check functions/api/people/merge.js)",
+      "Bash(node --check functions/api/auth/me.js)",
+      "Bash(node --check functions/api/expenses.js)",
+      "Bash(node --check lib/auth.js)",
+      "Bash(awk '/<script>/{flag=1; next} /<\\\\/script>/{flag=0} flag' public/index.html)",
+      "Bash(node --check /tmp/inline.js)"
+    ]
+  }
+}

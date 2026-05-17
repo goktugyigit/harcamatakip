@@ -13,7 +13,7 @@ function optStr(v, max) {
   return s.slice(0, max);
 }
 
-function normalizeRow(raw) {
+function normalizeRow(raw, person) {
   const amountNum = Number(raw?.amount);
   if (!Number.isFinite(amountNum) || amountNum <= 0) {
     return { error: "Tutar pozitif bir sayı olmalı" };
@@ -27,7 +27,7 @@ function normalizeRow(raw) {
   return {
     row: {
       date,
-      person: optStr(raw?.person, 100),
+      person,
       description: optStr(raw?.description, 500),
       payment_method: optStr(raw?.payment_method, 50),
       note: optStr(raw?.note, 1000),
@@ -56,6 +56,14 @@ export async function onRequestPost({ request, env }) {
   const user = await getCurrentUser(request, env.DB);
   if (!user) return unauthorized();
 
+  const person = (user.display_name || "").trim();
+  if (!person) {
+    return json(
+      { error: "Önce ayarlardan adınızı belirleyin", code: "DISPLAY_NAME_REQUIRED" },
+      { status: 403 },
+    );
+  }
+
   let body;
   try {
     body = await request.json();
@@ -69,7 +77,7 @@ export async function onRequestPost({ request, env }) {
 
   const rows = [];
   for (let i = 0; i < items.length; i++) {
-    const out = normalizeRow(items[i]);
+    const out = normalizeRow(items[i], person);
     if (out.error) return badRequest(`Satır ${i + 1}: ${out.error}`);
     rows.push(out.row);
   }

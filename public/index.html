@@ -2,7 +2,9 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#ffffff" />
+<meta name="format-detection" content="telephone=no" />
 <title>Harcama Takip</title>
 <style>
   :root {
@@ -24,7 +26,8 @@
     --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
   }
   * { box-sizing: border-box; }
-  html, body { height: 100%; }
+  html, body { height: 100%; background: var(--bg); }
+  html { overscroll-behavior-y: none; }
   body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
@@ -32,8 +35,10 @@
     background: var(--bg);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
     font-feature-settings: "tnum" 1, "cv11" 1;
     line-height: 1.5;
+    padding-bottom: env(safe-area-inset-bottom);
   }
   ::selection { background: #09090b; color: #ffffff; }
 
@@ -45,6 +50,9 @@
     -webkit-backdrop-filter: saturate(180%) blur(10px);
     border-bottom: 1px solid var(--border);
     padding: clamp(10px, 2.4vw, 14px) clamp(14px, 3.5vw, 28px);
+    padding-top: max(clamp(10px, 2.4vw, 14px), env(safe-area-inset-top));
+    padding-left: max(clamp(14px, 3.5vw, 28px), env(safe-area-inset-left));
+    padding-right: max(clamp(14px, 3.5vw, 28px), env(safe-area-inset-right));
     display: flex; justify-content: space-between; align-items: center;
     gap: 8px;
   }
@@ -60,13 +68,46 @@
     color: #fff; font-size: 12px; font-weight: 700;
     flex-shrink: 0;
   }
-  .header-right { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .header-right { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .who {
-    color: var(--muted); font-size: 13px;
+    color: var(--text-2); font-size: 13px; font-weight: 500;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     max-width: 30vw;
   }
-  @media (max-width: 460px) { .who { display: none; } }
+  @media (max-width: 460px) { .who { max-width: 40vw; font-size: 12px; } }
+
+  /* Settings butonu */
+  button.icon-btn {
+    background: var(--bg); color: var(--muted); border: 1px solid var(--border);
+    width: 36px; height: 36px; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 8px; line-height: 0;
+  }
+  button.icon-btn svg {
+    width: 16px; height: 16px; display: block;
+    stroke: currentColor; fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  button.icon-btn:hover { color: var(--text); background: var(--bg-2); border-color: var(--border-strong); }
+
+  /* Lock badge (display_name set ise) */
+  .lock-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    margin-left: 6px; font-size: 11px; color: var(--muted);
+    font-weight: 500;
+  }
+  .input-readonly {
+    background: var(--bg-3); color: var(--text-2);
+    cursor: not-allowed; opacity: 0.85;
+  }
+  .input-readonly:hover, .input-readonly:focus {
+    border-color: var(--border); box-shadow: none;
+  }
+  .hint-text {
+    margin: 6px 0 0; font-size: 12px; color: var(--muted);
+  }
+  .hint-text.warn { color: #b45309; }
 
   main {
     max-width: 1080px; margin: 0 auto;
@@ -142,7 +183,13 @@
     background: var(--bg); color: var(--muted); border: 1px solid var(--border);
     width: 34px; height: 34px; padding: 0;
     display: inline-flex; align-items: center; justify-content: center;
-    border-radius: 8px; font-size: 16px;
+    border-radius: 8px; line-height: 0;
+  }
+  button.icon svg {
+    width: 15px; height: 15px; display: block;
+    stroke: currentColor; fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round; stroke-linejoin: round;
   }
   button.icon:hover {
     color: var(--danger); background: #fef2f2; border-color: #fecaca;
@@ -152,9 +199,9 @@
   #rows { display: flex; flex-direction: column; gap: 8px; }
   .entry {
     display: grid;
-    grid-template-columns: 130px 1.1fr 1.4fr 130px 130px 34px;
+    grid-template-columns: 140px 1fr 140px 140px 38px;
     gap: 8px;
-    align-items: center;
+    align-items: stretch;
     padding: 10px;
     background: var(--bg-2);
     border: 1px solid var(--border);
@@ -162,6 +209,10 @@
     animation: fadeIn 0.18s ease;
   }
   .entry input { background: var(--bg); }
+  .entry .f-rm {
+    width: 38px; height: auto;
+    align-self: stretch;
+  }
   .entry .note-input {
     grid-column: 1 / -1;
     background: var(--bg);
@@ -181,7 +232,6 @@
       grid-template-columns: 1fr 1fr;
       grid-template-areas:
         "date   amount"
-        "person person"
         "desc   desc"
         "pm     pm"
         "note   note"
@@ -190,7 +240,6 @@
     }
     .entry .f-date    { grid-area: date; }
     .entry .f-amount  { grid-area: amount; }
-    .entry .f-person  { grid-area: person; }
     .entry .f-desc    { grid-area: desc; }
     .entry .f-pm      { grid-area: pm; }
     .entry .note-input{ grid-area: note; }
@@ -282,7 +331,7 @@
     border-bottom: 1px solid var(--border);
     background: var(--bg-2);
   }
-  td { border-bottom: 1px solid var(--border); vertical-align: top; }
+  td { border-bottom: 1px solid var(--border); vertical-align: middle; }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: var(--bg-2); }
   td.amount {
@@ -383,17 +432,24 @@
   /* ───── Toast ───── */
   .toast {
     position: fixed; top: 20px; left: 50%;
-    transform: translate(-50%, -150%);
+    transform: translate(-50%, -200%);
     background: var(--text); color: #fff;
     border-radius: 10px; padding: 11px 18px;
     font-size: 13px; font-weight: 500;
     box-shadow: var(--shadow-lg);
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s, visibility 0.2s;
     z-index: 100; pointer-events: none;
     display: flex; align-items: center; gap: 8px;
     max-width: calc(100vw - 32px);
+    opacity: 0;
+    visibility: hidden;
   }
-  .toast.show { transform: translate(-50%, 0); }
+  .toast.show {
+    transform: translate(-50%, 0);
+    opacity: 1;
+    visibility: visible;
+  }
   .toast::before {
     content: ""; width: 6px; height: 6px; border-radius: 99px; background: #fff;
     flex-shrink: 0;
@@ -403,7 +459,7 @@
   @media (max-width: 480px) {
     .toast {
       top: 12px; left: 12px; right: 12px;
-      transform: translateY(-150%); max-width: none;
+      transform: translateY(-200%); max-width: none;
       justify-content: center;
     }
     .toast.show { transform: translateY(0); }
@@ -417,6 +473,174 @@
   @keyframes dots {
     0%, 20% { content: ""; } 40% { content: "."; }
     60% { content: ".."; } 80%, 100% { content: "..."; }
+  }
+
+  /* ───── Row actions (delete) ───── */
+  th.col-actions, td.row-actions {
+    width: 52px; padding-left: 4px; padding-right: 8px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  .row-del-btn {
+    background: transparent; border: 1px solid transparent;
+    color: var(--muted-2);
+    width: 34px; height: 34px; padding: 0;
+    border-radius: 8px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    line-height: 0;
+    transition: color 0.12s, background 0.12s, border-color 0.12s;
+  }
+  .row-del-btn svg {
+    width: 16px; height: 16px; display: block;
+    stroke: currentColor; fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .row-del-btn:hover, .row-del-btn:focus-visible {
+    color: var(--danger); background: #fef2f2; border-color: #fecaca;
+  }
+  .row-del-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  tr:hover .row-del-btn { color: var(--text-2); }
+
+  /* ───── Per-person row actions ───── */
+  .stat-row { position: relative; }
+  .stat-actions { display: flex; gap: 4px; align-items: center; }
+  .person-checkbox {
+    width: 18px; height: 18px; margin: 0;
+    accent-color: var(--black);
+    cursor: pointer;
+  }
+  .stat-row.selectable { cursor: pointer; }
+  .stat-row.selectable:hover { background: var(--bg-2); border-radius: 6px; margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
+
+  /* ───── Modal ───── */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(9, 9, 11, 0.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200; padding: 16px;
+    opacity: 0; transition: opacity 0.18s;
+    overflow-y: auto;
+  }
+  .modal-backdrop.show { opacity: 1; }
+  .modal {
+    background: var(--bg);
+    border-radius: 12px;
+    width: 100%; max-width: 460px;
+    max-height: calc(100vh - 32px);
+    display: flex; flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(8px) scale(0.98);
+    transition: transform 0.18s;
+  }
+  .modal-backdrop.show .modal { transform: translateY(0) scale(1); }
+  .modal-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-head h3 {
+    margin: 0; font-size: 15px; font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  .modal-head .sub {
+    margin: 4px 0 0; font-size: 13px; color: var(--muted);
+  }
+  .modal-body {
+    padding: 16px 20px;
+    overflow-y: auto;
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-2);
+  }
+  .modal-body .field { margin-bottom: 12px; }
+  .modal-body .field:last-child { margin-bottom: 0; }
+  .modal-body .checkbox-list {
+    display: flex; flex-direction: column; gap: 2px;
+    max-height: 240px; overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px;
+    background: var(--bg-2);
+  }
+  .modal-body .checkbox-list label {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 6px;
+    cursor: pointer; font-size: 14px; color: var(--text); font-weight: 400;
+    margin-bottom: 0;
+    transition: background 0.1s;
+  }
+  .modal-body .checkbox-list label:hover { background: var(--bg-3); }
+  .modal-body .checkbox-list label input { width: auto; }
+  .modal-body .checkbox-list label .meta {
+    margin-left: auto; font-size: 12px; color: var(--muted);
+  }
+  .modal-actions {
+    display: flex; gap: 8px; justify-content: flex-end;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-2);
+    border-radius: 0 0 12px 12px;
+  }
+  .modal-actions button { min-width: 90px; }
+  .modal-actions .btn-danger {
+    background: var(--danger); border-color: var(--danger);
+  }
+  .modal-actions .btn-danger:hover {
+    background: #b91c1c; border-color: #b91c1c;
+  }
+
+  /* ───── Mobil tweaks ───── */
+  @media (max-width: 640px) {
+    td.row-actions {
+      padding: 10px 0 0;
+      margin-top: 8px;
+      border-top: 1px dashed var(--border);
+      width: auto;
+      justify-content: stretch;
+    }
+    td.row-actions::before { display: none; }
+    td.row-actions .row-del-btn {
+      width: 100%; height: 40px;
+      border: 1px solid var(--border);
+      color: var(--danger);
+      gap: 8px;
+      font-size: 13px; font-weight: 500;
+      line-height: 1;
+    }
+    td.row-actions .row-del-btn::after {
+      content: "Sil";
+    }
+    td.row-actions .row-del-btn svg { width: 15px; height: 15px; }
+  }
+  @media (max-width: 480px) {
+    .modal {
+      max-width: none;
+      align-self: flex-end;
+      border-radius: 14px 14px 0 0;
+      max-height: 92vh;
+    }
+    .modal-backdrop {
+      padding: 0; align-items: flex-end;
+    }
+    .modal-actions {
+      border-radius: 0;
+      padding-bottom: max(14px, env(safe-area-inset-bottom));
+    }
+    .modal-actions button { flex: 1; padding: 12px; font-size: 15px; min-height: 44px; }
+    .modal-body input, .modal-body select, .modal-body textarea {
+      font-size: 16px; min-height: 44px;
+    }
+    .modal-body .checkbox-list label { padding: 11px 10px; min-height: 44px; }
+    .modal-body .checkbox-list label .person-checkbox { width: 20px; height: 20px; }
+    button { min-height: 40px; }
+    button.icon, .row-del-btn { min-height: 38px; }
+    header { padding: 10px 12px; }
+    .brand { font-size: 14px; }
+    .brand-mark { width: 24px; height: 24px; }
+    .actions { padding: 12px; }
+    .card-head { padding: 14px 16px; }
+    .card-head h2 { font-size: 15px; }
+    .card-body { padding: 12px 14px; }
   }
 </style>
 </head>
@@ -433,6 +657,9 @@
   <option value="Havale/EFT"></option>
   <option value="Diğer"></option>
 </datalist>
+<datalist id="person-suggestions"></datalist>
+
+<div id="modal-root"></div>
 
 <template id="tpl-auth">
   <div class="auth-wrap">
@@ -476,6 +703,9 @@
     </div>
     <div class="header-right">
       <span class="who" id="who"></span>
+      <button type="button" class="icon-btn" id="settings-btn" title="Ayarlar" aria-label="Ayarlar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
       <button class="ghost" id="logout">Çıkış</button>
     </div>
   </header>
@@ -498,6 +728,7 @@
     <section class="card">
       <div class="card-head">
         <h2>Özet</h2>
+        <button type="button" class="ghost" id="merge-people-btn" style="font-size: 13px; padding: 6px 12px;">Kişileri birleştir</button>
       </div>
       <div class="summary-grid">
         <div>
@@ -568,6 +799,81 @@ function toast(message, type = "ok") {
   }, 2400);
 }
 
+// ───── Modal ─────
+function openModal({ title, sub, bodyHTML, confirmText = "Tamam", cancelText = "Vazgeç", danger = false, dismissable = true, hideConfirm = false, onConfirm }) {
+  return new Promise((resolve) => {
+    const root = document.getElementById("modal-root");
+    const wrap = document.createElement("div");
+    wrap.className = "modal-backdrop";
+    wrap.innerHTML = `
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-head">
+          <h3>${escapeHtml(title)}</h3>
+          ${sub ? `<p class="sub">${escapeHtml(sub)}</p>` : ""}
+        </div>
+        <div class="modal-body">${bodyHTML || ""}</div>
+        <div class="modal-actions">
+          ${dismissable ? `<button type="button" class="ghost m-cancel">${escapeHtml(cancelText)}</button>` : ""}
+          ${hideConfirm ? "" : `<button type="button" class="m-confirm${danger ? " btn-danger" : ""}">${escapeHtml(confirmText)}</button>`}
+        </div>
+      </div>
+    `;
+    root.appendChild(wrap);
+    requestAnimationFrame(() => wrap.classList.add("show"));
+
+    const cleanup = (result) => {
+      wrap.classList.remove("show");
+      setTimeout(() => wrap.remove(), 180);
+      document.removeEventListener("keydown", onKey);
+      resolve(result);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape" && dismissable) cleanup(false);
+      else if (e.key === "Enter" && document.activeElement?.tagName !== "TEXTAREA") {
+        const btn = wrap.querySelector(".m-confirm");
+        if (btn && !btn.disabled) btn.click();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+
+    if (dismissable) {
+      wrap.addEventListener("click", (e) => {
+        if (e.target === wrap) cleanup(false);
+      });
+      const cancelBtn = wrap.querySelector(".m-cancel");
+      if (cancelBtn) cancelBtn.addEventListener("click", () => cleanup(false));
+    }
+    const confirmBtn = wrap.querySelector(".m-confirm");
+    if (confirmBtn) {
+      confirmBtn.addEventListener("click", async () => {
+        const btn = confirmBtn;
+        const cancel = wrap.querySelector(".m-cancel");
+        if (onConfirm) {
+          btn.disabled = true; if (cancel) cancel.disabled = true;
+          btn.classList.add("dots");
+          const oldText = btn.textContent;
+          btn.textContent = "İşleniyor";
+          try {
+            const r = await onConfirm(wrap);
+            cleanup(r ?? true);
+          } catch (err) {
+            toast(err?.message || "Hata", "error");
+            btn.disabled = false; if (cancel) cancel.disabled = false;
+            btn.classList.remove("dots");
+            btn.textContent = oldText;
+          }
+        } else {
+          cleanup(true);
+        }
+      });
+    }
+  });
+}
+
+function confirmDialog({ title, sub, confirmText = "Onayla", cancelText = "Vazgeç", danger = false }) {
+  return openModal({ title, sub, confirmText, cancelText, danger });
+}
+
 // ───── AUTH VIEW ─────
 function renderAuth() {
   const root = document.getElementById("app");
@@ -615,11 +921,17 @@ function renderAuth() {
 }
 
 // ───── APP VIEW ─────
+let currentUser = null;
+
 function renderApp(user) {
+  currentUser = user;
   const root = document.getElementById("app");
   root.innerHTML = "";
   root.appendChild(document.getElementById("tpl-app").content.cloneNode(true));
-  document.getElementById("who").textContent = user.email;
+
+  const whoEl = document.getElementById("who");
+  whoEl.textContent = user.display_name || user.email;
+  whoEl.title = user.email;
 
   const rowsEl = document.getElementById("rows");
 
@@ -628,11 +940,10 @@ function renderApp(user) {
     row.className = "entry";
     row.innerHTML = `
       <input type="date" class="f-date" value="${todayISO()}" />
-      <input type="text" class="f-person" placeholder="Kim" maxlength="100" />
       <input type="text" class="f-desc" placeholder="Ne için" maxlength="500" />
-      <input type="text" class="f-pm" list="pm-suggestions" placeholder="Nasıl ödedi" maxlength="50" />
+      <input type="text" class="f-pm" list="pm-suggestions" placeholder="Nasıl ödedi" maxlength="50" autocomplete="off" />
       <input type="number" class="f-amount" placeholder="Tutar *" min="0" step="0.01" inputmode="decimal" />
-      <button type="button" class="icon f-rm" title="Sil" aria-label="Sil">×</button>
+      <button type="button" class="icon f-rm" title="Sil" aria-label="Sil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
       <input type="text" class="note-input f-note" placeholder="Not / neden (opsiyonel)" maxlength="1000" />
     `;
     const amount = row.querySelector(".f-amount");
@@ -654,7 +965,7 @@ function renderApp(user) {
       }
     });
     rowsEl.appendChild(row);
-    if (focusFirst) row.querySelector(".f-person").focus();
+    if (focusFirst) row.querySelector(".f-desc").focus();
   }
   addRow();
 
@@ -667,7 +978,6 @@ function renderApp(user) {
     for (const row of rowsEl.children) {
       const amountVal = row.querySelector(".f-amount").value;
       const isAllEmpty = !amountVal &&
-        !row.querySelector(".f-person").value.trim() &&
         !row.querySelector(".f-desc").value.trim() &&
         !row.querySelector(".f-pm").value.trim() &&
         !row.querySelector(".f-note").value.trim();
@@ -680,7 +990,6 @@ function renderApp(user) {
       }
       items.push({
         date: row.querySelector(".f-date").value || null,
-        person: row.querySelector(".f-person").value,
         description: row.querySelector(".f-desc").value,
         payment_method: row.querySelector(".f-pm").value,
         note: row.querySelector(".f-note").value,
@@ -723,20 +1032,176 @@ function renderApp(user) {
     boot();
   });
 
+  document.getElementById("settings-btn").addEventListener("click", openSettingsModal);
+  document.getElementById("merge-people-btn").addEventListener("click", openMergePeopleModal);
+
   refreshData();
 }
 
+async function openSettingsModal() {
+  const user = currentUser;
+  if (!user) return;
+  const locked = !!(user.display_name && user.display_name.trim());
+  const bodyHTML = `
+    <div class="field">
+      <label>E-posta</label>
+      <input type="text" class="input-readonly" value="${escapeHtml(user.email)}" disabled />
+    </div>
+    <div class="field">
+      <label>Görünen ad ${locked ? '<span class="lock-badge">🔒 Kilitli</span>' : ''}</label>
+      ${locked
+        ? `<input type="text" class="input-readonly" value="${escapeHtml(user.display_name)}" disabled />
+           <p class="hint-text">Görünen ad tek seferlik belirlenir ve değiştirilemez. Hatalı yazdıysan yöneticiyle iletişime geç.</p>`
+        : `<input type="text" id="dn-input" placeholder="ör. Göktuğ Yiğit" maxlength="100" autocomplete="name" />
+           <p class="hint-text warn">⚠ Bu ad tek seferlik belirlenir. Sonradan değiştirilemez.</p>`}
+    </div>
+  `;
+  await openModal({
+    title: "Ayarlar",
+    bodyHTML,
+    confirmText: locked ? "Kapat" : "Kaydet",
+    cancelText: "Vazgeç",
+    onConfirm: locked ? null : async (wrap) => {
+      const input = wrap.querySelector("#dn-input");
+      const name = input.value.trim().replace(/\s+/g, " ");
+      if (!name) throw new Error("Ad boş olamaz");
+      if (name.length < 2) throw new Error("Ad en az 2 karakter olmalı");
+      const r = await api("/api/auth/me", {
+        method: "POST",
+        body: JSON.stringify({ display_name: name }),
+      });
+      currentUser = r.user;
+      const whoEl = document.getElementById("who");
+      if (whoEl) whoEl.textContent = currentUser.display_name;
+      toast("Ad kaydedildi", "ok");
+      return true;
+    },
+  });
+}
+
+async function promptInitialDisplayName(user) {
+  document.getElementById("app").innerHTML = "";
+  const bodyHTML = `
+    <div class="field">
+      <label>Ad Soyad</label>
+      <input type="text" id="dn-input" placeholder="ör. Göktuğ Yiğit" maxlength="100" autocomplete="name" autofocus />
+    </div>
+    <p class="hint-text warn">⚠ Bu ad <strong>tek seferlik</strong> belirlenir, sonradan değiştirilemez. Tüm harcamalarınız bu isim altında listelenir.</p>
+    <p class="hint-text">E-posta: ${escapeHtml(user.email)}</p>
+  `;
+  const result = await openModal({
+    title: "Adınızı belirleyin",
+    sub: "Devam etmek için görünen adınızı girin",
+    bodyHTML,
+    confirmText: "Kaydet ve devam et",
+    dismissable: false,
+    onConfirm: async (wrap) => {
+      const input = wrap.querySelector("#dn-input");
+      const name = input.value.trim().replace(/\s+/g, " ");
+      if (!name) throw new Error("Ad boş olamaz");
+      if (name.length < 2) throw new Error("Ad en az 2 karakter olmalı");
+      const r = await api("/api/auth/me", {
+        method: "POST",
+        body: JSON.stringify({ display_name: name }),
+      });
+      return r.user;
+    },
+  });
+  setTimeout(() => {
+    const input = document.querySelector("#dn-input");
+    if (input) input.focus();
+  }, 50);
+  return result;
+}
+
+let currentPeople = [];
+
 async function refreshData() {
   try {
-    const [sum, list] = await Promise.all([
+    const [sum, list, people] = await Promise.all([
       api("/api/summary"),
       api("/api/expenses"),
+      api("/api/people"),
     ]);
+    currentPeople = Array.isArray(people?.people) ? people.people : [];
+    refreshPersonDatalist();
     renderSummary(sum);
     renderList(list);
   } catch (err) {
     console.error(err);
   }
+}
+
+function refreshPersonDatalist() {
+  const dl = document.getElementById("person-suggestions");
+  if (!dl) return;
+  dl.innerHTML = currentPeople
+    .map((p) => `<option value="${escapeHtml(p.person)}"></option>`)
+    .join("");
+}
+
+async function openMergePeopleModal() {
+  if (!currentPeople.length) {
+    toast("Birleştirilecek kişi yok", "error");
+    return;
+  }
+  if (currentPeople.length < 2) {
+    toast("En az iki farklı kişi gerekli", "error");
+    return;
+  }
+
+  const sorted = [...currentPeople].sort((a, b) =>
+    String(a.person).localeCompare(String(b.person), "tr"),
+  );
+  const bodyHTML = `
+    <div class="field">
+      <label>Birleştirilecek kişiler</label>
+      <div class="checkbox-list" id="merge-sources">
+        ${sorted
+          .map(
+            (p) => `
+          <label>
+            <input type="checkbox" class="person-checkbox" value="${escapeHtml(p.person)}" />
+            <span>${escapeHtml(p.person)}</span>
+            <span class="meta">${p.count} kayıt</span>
+          </label>`,
+          )
+          .join("")}
+      </div>
+    </div>
+    <div class="field">
+      <label>Hedef kişi (mevcut veya yeni)</label>
+      <input type="text" id="merge-target" list="person-suggestions" placeholder="ör. Ahmet" maxlength="100" autocomplete="off" />
+    </div>
+    <p class="sub" style="margin: 0; font-size: 12px; color: var(--muted);">
+      Seçilen kişilerin tüm harcamaları hedef kişinin altına taşınır. Veriler silinmez.
+    </p>
+  `;
+
+  await openModal({
+    title: "Kişileri birleştir",
+    sub: "Aynı kişi farklı isimlerle girilmişse tek isim altında toplayın",
+    bodyHTML,
+    confirmText: "Birleştir",
+    onConfirm: async (wrap) => {
+      const sources = Array.from(
+        wrap.querySelectorAll("#merge-sources input:checked"),
+      ).map((c) => c.value);
+      const target = wrap.querySelector("#merge-target").value.trim();
+      if (sources.length === 0) throw new Error("En az bir kişi seçin");
+      if (!target) throw new Error("Hedef kişi adı boş olamaz");
+      const filtered = sources.filter((s) => s !== target);
+      if (filtered.length === 0) throw new Error("Kaynak ve hedef aynı kişi");
+
+      const r = await api("/api/people/merge", {
+        method: "POST",
+        body: JSON.stringify({ sources: filtered, target }),
+      });
+      toast(`${r.updated} kayıt birleştirildi`, "ok");
+      refreshData();
+      return true;
+    },
+  });
 }
 
 function renderStats(elId, items, total) {
@@ -785,13 +1250,14 @@ function renderList({ expenses }) {
           <th>Ne için</th>
           <th>Nasıl</th>
           <th style="text-align:right">Tutar</th>
+          <th class="col-actions"></th>
         </tr>
       </thead>
       <tbody>
         ${expenses
           .map(
             (e) => `
-          <tr>
+          <tr data-id="${e.id}">
             <td data-label="Tarih">${escapeHtml(fmtDate(e.date))}</td>
             <td data-label="Kim">${dim(e.person)}</td>
             <td data-label="Ne için">
@@ -800,19 +1266,61 @@ function renderList({ expenses }) {
             </td>
             <td data-label="Nasıl">${e.payment_method ? `<span class="pill">${escapeHtml(e.payment_method)}</span>` : '<span class="dim">—</span>'}</td>
             <td class="amount" data-label="Tutar">${fmtTRY(e.amount_cents)}</td>
+            <td class="row-actions">
+              <button type="button" class="row-del-btn" data-del-id="${e.id}" aria-label="Sil" title="Sil">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+              </button>
+            </td>
           </tr>`,
           )
           .join("")}
       </tbody>
     </table>
   `;
+
+  el.querySelectorAll("[data-del-id]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = Number(btn.dataset.delId);
+      const row = expenses.find((x) => x.id === id);
+      if (!row) return;
+      const summary = [
+        row.person ? `Kim: ${row.person}` : null,
+        row.description ? `Ne: ${row.description}` : null,
+        `Tutar: ${fmtTRY(row.amount_cents)}`,
+      ].filter(Boolean).join(" · ");
+      const ok = await confirmDialog({
+        title: "Bu harcama silinsin mi?",
+        sub: summary,
+        confirmText: "Sil",
+        danger: true,
+      });
+      if (!ok) return;
+      btn.disabled = true;
+      try {
+        await api(`/api/expenses/${id}`, { method: "DELETE" });
+        toast("Silindi", "ok");
+        refreshData();
+      } catch (err) {
+        btn.disabled = false;
+        toast(err.message, "error");
+      }
+    });
+  });
 }
 
 async function boot() {
   try {
     const { user } = await api("/api/auth/me");
-    if (user) renderApp(user);
-    else renderAuth();
+    if (!user) {
+      renderAuth();
+      return;
+    }
+    if (!user.display_name || !user.display_name.trim()) {
+      const updated = await promptInitialDisplayName(user);
+      renderApp(updated);
+    } else {
+      renderApp(user);
+    }
   } catch {
     renderAuth();
   }
