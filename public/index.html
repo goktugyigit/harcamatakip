@@ -26,6 +26,7 @@
     --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html, body { height: 100%; background: var(--bg); }
   html { overscroll-behavior-y: none; }
   body {
@@ -654,6 +655,15 @@
   .auth-msg.error { color: var(--danger); }
   .auth-msg.ok { color: var(--ok); }
   .auth-actions button { width: 100%; padding: 11px; font-size: 14px; }
+  .auth-extra { margin-top: 14px; text-align: center; }
+  .auth-extra a {
+    font-size: 13px; color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .auth-extra a:hover { color: var(--text); border-bottom-color: var(--text-2); }
+  .auth-extra[hidden] { display: none; }
 
   /* ───── Toast ───── */
   .toast {
@@ -914,6 +924,9 @@
               <button type="submit" id="auth-submit">Giriş yap</button>
             </div>
             <div class="auth-msg" id="auth-msg"></div>
+            <div class="auth-extra" id="auth-extra">
+              <a href="#" id="forgot-link">Şifremi unuttum</a>
+            </div>
           </form>
         </div>
       </div>
@@ -968,7 +981,7 @@
       </div>
       <div class="total-bar">
         <span class="label">Genel toplam</span>
-        <span class="amount" id="grand-total">₺0,00</span>
+        <span class="amount" id="grand-total">0,00 ₼</span>
       </div>
     </section>
 
@@ -1007,11 +1020,11 @@
             <input type="date" id="f-date-to" />
           </div>
           <div class="filter-field">
-            <label for="f-amount-min">Min tutar (₺)</label>
+            <label for="f-amount-min">Min tutar (₼)</label>
             <input type="number" id="f-amount-min" step="0.01" min="0" placeholder="0" inputmode="decimal" />
           </div>
           <div class="filter-field">
-            <label for="f-amount-max">Max tutar (₺)</label>
+            <label for="f-amount-max">Max tutar (₼)</label>
             <input type="number" id="f-amount-max" step="0.01" min="0" placeholder="∞" inputmode="decimal" />
           </div>
           <div class="filter-field">
@@ -1035,10 +1048,16 @@
 
 <script>
 // ───── Helpers ─────
-const fmtTRY = (cents) =>
-  new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(
-    Number(cents) / 100,
-  );
+// Para birimi: Azerbaycan Manatı (₼). Türkçe sayı formatı (1.234,56) korunur.
+const fmtMoney = (cents) => {
+  const n = Number(cents) / 100;
+  if (!Number.isFinite(n)) return "0,00 ₼";
+  const formatted = n.toLocaleString("tr-TR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `${formatted} ₼`;
+};
 const todayISO = () => {
   const d = new Date();
   const off = d.getTimezoneOffset();
@@ -1167,6 +1186,8 @@ function renderAuth() {
   const form = root.querySelector("#auth-form");
   const msg = root.querySelector("#auth-msg");
   const passwordInput = form.querySelector("input[name=password]");
+  const authExtra = root.querySelector("#auth-extra");
+  const forgotLink = root.querySelector("#forgot-link");
 
   const setMode = (m) => {
     mode = m;
@@ -1175,8 +1196,14 @@ function renderAuth() {
     passwordInput.autocomplete = m === "login" ? "current-password" : "new-password";
     msg.textContent = "";
     msg.className = "auth-msg";
+    authExtra.hidden = m !== "login";
   };
   tabs.forEach((t) => t.addEventListener("click", () => setMode(t.dataset.tab)));
+
+  forgotLink.addEventListener("click", async (e) => {
+    e.preventDefault();
+    await openResetPasswordModal();
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1356,39 +1383,76 @@ function applyMergeVisibility() {
 async function openSettingsModal() {
   const user = currentUser;
   if (!user) return;
-  const locked = !!(user.display_name && user.display_name.trim());
+  const nameLocked = !!(user.display_name && user.display_name.trim());
   const bodyHTML = `
     <div class="field">
       <label>E-posta</label>
       <input type="text" class="input-readonly" value="${escapeHtml(user.email)}" disabled />
     </div>
     <div class="field">
-      <label>Görünen ad ${locked ? '<span class="lock-badge">🔒 Kilitli</span>' : ''}</label>
-      ${locked
+      <label>Görünen ad ${nameLocked ? '<span class="lock-badge">🔒 Kilitli</span>' : ''}</label>
+      ${nameLocked
         ? `<input type="text" class="input-readonly" value="${escapeHtml(user.display_name)}" disabled />
-           <p class="hint-text">Görünen ad tek seferlik belirlenir ve değiştirilemez. Hatalı yazdıysan yöneticiyle iletişime geç.</p>`
+           <p class="hint-text">Görünen ad tek seferlik belirlenir ve değiştirilemez.</p>`
         : `<input type="text" id="dn-input" placeholder="ör. Göktuğ Yiğit" maxlength="100" autocomplete="name" />
-           <p class="hint-text warn">⚠ Bu ad tek seferlik belirlenir. Sonradan değiştirilemez.</p>`}
+           <p class="hint-text warn">⚠ Bu ad tek seferlik belirlenir.</p>`}
+    </div>
+    <div class="field">
+      <label>Telefon numarası</label>
+      <input type="tel" id="phone-input" value="${escapeHtml(user.phone || "")}" placeholder="5XXXXXXXXX" inputmode="numeric" maxlength="11" autocomplete="tel" />
+      <p class="hint-text">10 hane, başında 0 olmadan. Şifremi unuttum için kullanılır.</p>
     </div>
   `;
   await openModal({
     title: "Ayarlar",
     bodyHTML,
-    confirmText: locked ? "Kapat" : "Kaydet",
-    cancelText: "Vazgeç",
-    onConfirm: locked ? null : async (wrap) => {
-      const input = wrap.querySelector("#dn-input");
-      const name = input.value.trim().replace(/\s+/g, " ");
-      if (!name) throw new Error("Ad boş olamaz");
-      if (name.length < 2) throw new Error("Ad en az 2 karakter olmalı");
-      const r = await api("/api/auth/me", {
-        method: "POST",
-        body: JSON.stringify({ display_name: name }),
-      });
-      currentUser = r.user;
-      const whoEl = document.getElementById("who");
-      if (whoEl) whoEl.textContent = currentUser.display_name;
-      toast("Ad kaydedildi", "ok");
+    confirmText: "Kaydet",
+    cancelText: "Kapat",
+    onMount: (wrap) => {
+      const phoneEl = wrap.querySelector("#phone-input");
+      if (phoneEl) {
+        phoneEl.addEventListener("input", () => {
+          const cleaned = normalizePhoneInput(phoneEl.value);
+          if (phoneEl.value !== cleaned) phoneEl.value = cleaned;
+        });
+      }
+    },
+    onConfirm: async (wrap) => {
+      let changed = false;
+
+      // Display name (yalnızca kilit yoksa)
+      if (!nameLocked) {
+        const input = wrap.querySelector("#dn-input");
+        const name = input.value.trim().replace(/\s+/g, " ");
+        if (name) {
+          if (name.length < 2) throw new Error("Ad en az 2 karakter olmalı");
+          const r = await api("/api/auth/me", {
+            method: "POST",
+            body: JSON.stringify({ display_name: name }),
+          });
+          currentUser = r.user;
+          changed = true;
+        }
+      }
+
+      // Phone (değiştirilebilir)
+      const phoneEl = wrap.querySelector("#phone-input");
+      const newPhone = normalizePhoneInput(phoneEl.value);
+      if (newPhone !== (user.phone || "")) {
+        if (newPhone.length !== 10) throw new Error("Telefon 10 hane olmalı (başında 0 olmadan)");
+        const r = await api("/api/auth/me", {
+          method: "PATCH",
+          body: JSON.stringify({ phone: newPhone }),
+        });
+        currentUser = r.user;
+        changed = true;
+      }
+
+      if (changed) {
+        const whoEl = document.getElementById("who");
+        if (whoEl) whoEl.textContent = currentUser.display_name || currentUser.email;
+        toast("Ayarlar kaydedildi", "ok");
+      }
       return true;
     },
   });
@@ -1427,6 +1491,100 @@ async function promptInitialDisplayName(user) {
     if (input) input.focus();
   }, 50);
   return result;
+}
+
+function normalizePhoneInput(s) {
+  return String(s || "").replace(/\D/g, "").replace(/^0+/, "").slice(0, 10);
+}
+
+async function promptInitialPhone(user) {
+  document.getElementById("app").innerHTML = "";
+  const bodyHTML = `
+    <div class="field">
+      <label>Telefon numarası</label>
+      <input type="tel" id="phone-input" placeholder="5XXXXXXXXX" inputmode="numeric" maxlength="11" autocomplete="tel" />
+      <p class="hint-text">Başında 0 olmadan 10 hane (ör. 5551234567). Yalnızca rakam.</p>
+    </div>
+    <p class="hint-text warn">⚠ Bu numara <strong>şifremi unuttum</strong> akışı için kullanılır. Numara olmadan şifrenizi sıfırlayamazsınız.</p>
+    <p class="hint-text">E-posta: ${escapeHtml(user.email)}</p>
+  `;
+  const result = await openModal({
+    title: "Telefon numaranızı girin",
+    sub: "Devam etmek için telefon numaranızı tanımlayın",
+    bodyHTML,
+    confirmText: "Kaydet ve devam et",
+    dismissable: false,
+    onConfirm: async (wrap) => {
+      const input = wrap.querySelector("#phone-input");
+      const phone = normalizePhoneInput(input.value);
+      if (phone.length !== 10) throw new Error("Telefon 10 hane olmalı (başında 0 olmadan)");
+      const r = await api("/api/auth/me", {
+        method: "PATCH",
+        body: JSON.stringify({ phone }),
+      });
+      return r.user;
+    },
+  });
+  setTimeout(() => {
+    const input = document.querySelector("#phone-input");
+    if (input) {
+      input.focus();
+      // Sadece rakam izin ver, otomatik 0'ı kırp
+      input.addEventListener("input", () => {
+        const cleaned = normalizePhoneInput(input.value);
+        if (input.value !== cleaned) input.value = cleaned;
+      });
+    }
+  }, 50);
+  return result;
+}
+
+async function openResetPasswordModal() {
+  const bodyHTML = `
+    <div class="field">
+      <label>E-posta</label>
+      <input type="email" id="rp-email" placeholder="ornek@email.com" autocomplete="email" />
+    </div>
+    <div class="field">
+      <label>Telefon numarası</label>
+      <input type="tel" id="rp-phone" placeholder="5XXXXXXXXX" inputmode="numeric" maxlength="11" autocomplete="tel" />
+      <p class="hint-text">Başında 0 olmadan 10 hane</p>
+    </div>
+    <div class="field">
+      <label>Yeni parola</label>
+      <input type="password" id="rp-pw" placeholder="••••••••" minlength="6" autocomplete="new-password" />
+    </div>
+    <p class="hint-text">E-posta ve telefon kayıtlarımızda eşleşirse şifreniz değişir ve tüm açık oturumlar sonlandırılır.</p>
+  `;
+  await openModal({
+    title: "Şifremi unuttum",
+    sub: "E-posta + telefon ile yeni parola belirleyin",
+    bodyHTML,
+    confirmText: "Şifreyi sıfırla",
+    cancelText: "Vazgeç",
+    onMount: (wrap) => {
+      const phoneEl = wrap.querySelector("#rp-phone");
+      phoneEl.addEventListener("input", () => {
+        const cleaned = normalizePhoneInput(phoneEl.value);
+        if (phoneEl.value !== cleaned) phoneEl.value = cleaned;
+      });
+      setTimeout(() => wrap.querySelector("#rp-email")?.focus(), 60);
+    },
+    onConfirm: async (wrap) => {
+      const email = wrap.querySelector("#rp-email").value.trim().toLowerCase();
+      const phone = normalizePhoneInput(wrap.querySelector("#rp-phone").value);
+      const pw = wrap.querySelector("#rp-pw").value;
+      if (!email || !email.includes("@")) throw new Error("Geçerli bir e-posta gir");
+      if (phone.length !== 10) throw new Error("Telefon 10 hane olmalı");
+      if (pw.length < 6) throw new Error("Parola en az 6 karakter olmalı");
+      await api("/api/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({ email, phone, new_password: pw }),
+      });
+      toast("Şifreniz değişti — giriş yapabilirsiniz", "ok");
+      return true;
+    },
+  });
 }
 
 let currentPeople = [];
@@ -1524,8 +1682,8 @@ function updateFilterInfo(filtered) {
   const active = filterActiveCount();
   const total = filtered.reduce((a, e) => a + Number(e.amount_cents), 0);
   const label = active > 0
-    ? `${filtered.length} / ${currentExpenses.length} kayıt · ${fmtTRY(total)}`
-    : `${currentExpenses.length} kayıt · ${fmtTRY(total)}`;
+    ? `${filtered.length} / ${currentExpenses.length} kayıt · ${fmtMoney(total)}`
+    : `${currentExpenses.length} kayıt · ${fmtMoney(total)}`;
   info.textContent = label;
   if (active > 0) {
     badge.textContent = active;
@@ -1679,7 +1837,7 @@ function pdItemHTML(e, canDelete) {
         </div>
         ${e.note ? `<div class="pd-note">${escapeHtml(e.note)}</div>` : ""}
       </div>
-      <div class="pd-amount">${fmtTRY(e.amount_cents)}</div>
+      <div class="pd-amount">${fmtMoney(e.amount_cents)}</div>
       ${canDelete
         ? `<button type="button" class="row-del-btn pd-del" data-del-id="${e.id}" aria-label="Sil" title="Sil">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
@@ -1713,13 +1871,13 @@ async function openPersonDetailModal(personName) {
     <div class="pd-list" id="pd-list"></div>
     <div class="pd-total">
       <span class="label">Filtrelenmiş toplam</span>
-      <span class="amount" id="pd-total-amount">${fmtTRY(0)}</span>
+      <span class="amount" id="pd-total-amount">${fmtMoney(0)}</span>
     </div>
   `;
 
   await openModal({
     title: personName,
-    sub: `${items.length} kayıt · toplam ${fmtTRY(items.reduce((a, e) => a + Number(e.amount_cents), 0))}`,
+    sub: `${items.length} kayıt · toplam ${fmtMoney(items.reduce((a, e) => a + Number(e.amount_cents), 0))}`,
     bodyHTML,
     confirmText: "Kapat",
     hideConfirm: true,
@@ -1750,7 +1908,7 @@ async function openPersonDetailModal(personName) {
               if (!row) return;
               const summary = [
                 row.description ? row.description : "(Açıklama yok)",
-                fmtTRY(row.amount_cents),
+                fmtMoney(row.amount_cents),
                 fmtDate(row.date),
               ].join(" · ");
               const ok = await confirmDialog({
@@ -1782,7 +1940,7 @@ async function openPersonDetailModal(personName) {
           });
         }
         const total = filtered.reduce((a, e) => a + Number(e.amount_cents), 0);
-        totalEl.textContent = fmtTRY(total);
+        totalEl.textContent = fmtMoney(total);
       };
 
       search.addEventListener("input", renderItems);
@@ -1835,7 +1993,7 @@ async function openAdminPanelModal() {
                 ${isSelf ? '<span class="you-tag">(sen)</span>' : ""}
               </div>
               <div class="au-email">${escapeHtml(u.email)}</div>
-              <div class="au-stats">${u.expense_count} kayıt · ${fmtTRY(u.total_cents)}</div>
+              <div class="au-stats">${u.expense_count} kayıt · ${fmtMoney(u.total_cents)}</div>
               <label class="switch au-toggle" title="Kişileri birleştir yetkisi">
                 <input type="checkbox" data-toggle-uid="${u.id}" ${u.can_merge ? "checked" : ""} />
                 <span class="track"></span>
@@ -1963,7 +2121,7 @@ function renderStats(elId, items, total, opts = {}) {
         <div class="${classes.join(" ")}"${dataAttr}>
           <div class="stat-top">
             <span class="stat-name">${escapeHtml(name)}</span>
-            <span class="stat-amount">${fmtTRY(p.total_cents)}</span>
+            <span class="stat-amount">${fmtMoney(p.total_cents)}</span>
           </div>
           <div class="stat-meta">${p.count} kayıt · %${share}</div>
           <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
@@ -1981,7 +2139,7 @@ function renderStats(elId, items, total, opts = {}) {
 function renderSummary({ per_person, per_method, total_cents }) {
   renderStats("summary-people", per_person, total_cents, { peopleMode: true });
   renderStats("summary-methods", per_method, total_cents);
-  document.getElementById("grand-total").textContent = fmtTRY(total_cents);
+  document.getElementById("grand-total").textContent = fmtMoney(total_cents);
 }
 
 function renderList({ expenses }) {
@@ -2019,7 +2177,7 @@ function renderList({ expenses }) {
               ${e.note ? `<div class="note-cell">${escapeHtml(e.note)}</div>` : ""}
             </td>
             <td data-label="Nasıl">${e.payment_method ? `<span class="pill">${escapeHtml(e.payment_method)}</span>` : '<span class="dim">—</span>'}</td>
-            <td class="amount" data-label="Tutar">${fmtTRY(e.amount_cents)}</td>
+            <td class="amount" data-label="Tutar">${fmtMoney(e.amount_cents)}</td>
             <td class="row-actions">
               ${isMine
                 ? `<button type="button" class="row-del-btn" data-del-id="${e.id}" aria-label="Sil" title="Sil">
@@ -2042,7 +2200,7 @@ function renderList({ expenses }) {
       const summary = [
         row.person ? `Kim: ${row.person}` : null,
         row.description ? `Ne: ${row.description}` : null,
-        `Tutar: ${fmtTRY(row.amount_cents)}`,
+        `Tutar: ${fmtMoney(row.amount_cents)}`,
       ].filter(Boolean).join(" · ");
       const ok = await confirmDialog({
         title: "Bu harcama silinsin mi?",
@@ -2071,12 +2229,14 @@ async function boot() {
       renderAuth();
       return;
     }
-    if (!user.display_name || !user.display_name.trim()) {
-      const updated = await promptInitialDisplayName(user);
-      renderApp(updated);
-    } else {
-      renderApp(user);
+    let current = user;
+    if (!current.display_name || !current.display_name.trim()) {
+      current = await promptInitialDisplayName(current);
     }
+    if (!current.phone || String(current.phone).trim().length !== 10) {
+      current = await promptInitialPhone(current);
+    }
+    renderApp(current);
   } catch {
     renderAuth();
   }

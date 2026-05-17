@@ -18,7 +18,8 @@
       "Bash(awk '/<script>/{flag=1; next} /<\\\\/script>/{flag=0} flag' public/index.html)",
       "Bash(node --check /tmp/inline.js)",
       "Bash(node --check functions/api/admin/users.js)",
-      "Bash(node --check functions/api/admin/users/\\\\[id\\\\].js)"
+      "Bash(node --check functions/api/admin/users/\\\\[id\\\\].js)",
+      "Bash(node --check functions/api/auth/reset-password.js)"
     ]
   }
 }

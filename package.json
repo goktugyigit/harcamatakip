@@ -10,7 +10,9 @@
     "db:migrate:002:local": "wrangler d1 execute harcama-takip-db --local --file=migrations/002_user_display_name.sql",
     "db:migrate:002:remote": "wrangler d1 execute harcama-takip-db --remote --file=migrations/002_user_display_name.sql",
     "db:migrate:003:local": "wrangler d1 execute harcama-takip-db --local --file=migrations/003_admin_and_merge_permission.sql",
-    "db:migrate:003:remote": "wrangler d1 execute harcama-takip-db --remote --file=migrations/003_admin_and_merge_permission.sql"
+    "db:migrate:003:remote": "wrangler d1 execute harcama-takip-db --remote --file=migrations/003_admin_and_merge_permission.sql",
+    "db:migrate:004:local": "wrangler d1 execute harcama-takip-db --local --file=migrations/004_user_phone.sql",
+    "db:migrate:004:remote": "wrangler d1 execute harcama-takip-db --remote --file=migrations/004_user_phone.sql"
   },
   "devDependencies": {
     "wrangler": "^3.90.0"

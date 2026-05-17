@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   password_salt TEXT NOT NULL,
   display_name TEXT,
+  phone TEXT,
   is_admin INTEGER NOT NULL DEFAULT 0,
   can_merge INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL
@@ -11,6 +12,9 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_display_name_unique
   ON users(LOWER(display_name))
   WHERE display_name IS NOT NULL AND TRIM(display_name) != '';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_phone_unique
+  ON users(phone)
+  WHERE phone IS NOT NULL AND TRIM(phone) != '';
 
 CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY,
