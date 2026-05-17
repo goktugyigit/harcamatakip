@@ -109,6 +109,139 @@
   }
   .hint-text.warn { color: #b45309; }
 
+  /* Geniş modal (kişi detay, admin paneli) */
+  .modal.modal-wide { max-width: 640px; }
+
+  /* Tıklanabilir stat-row (kendi adı) */
+  .stat-row.clickable {
+    cursor: pointer;
+    margin: 0 -10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 6px;
+    transition: background 0.12s;
+  }
+  .stat-row.clickable:hover { background: var(--bg-3); }
+  .stat-row.clickable:active { background: var(--bg-2); }
+  .stat-row.self .stat-name::after {
+    content: "(sen)"; margin-left: 6px;
+    font-size: 11px; font-weight: 500; color: var(--muted-2);
+    text-transform: lowercase;
+  }
+  .stat-row.locked { opacity: 0.92; }
+
+  /* Kişi detay modal içeriği */
+  .pd-filter { margin-bottom: 12px; }
+  .pd-list {
+    display: flex; flex-direction: column; gap: 6px;
+    max-height: 48vh; overflow-y: auto;
+    margin: 4px 0 12px;
+    padding-right: 2px;
+  }
+  .pd-item {
+    display: grid;
+    grid-template-columns: 1fr auto 38px;
+    gap: 4px 12px;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .pd-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; grid-column: 1; }
+  .pd-desc { font-size: 14px; font-weight: 500; color: var(--text); }
+  .pd-desc.empty { color: var(--muted-2); font-weight: 400; }
+  .pd-meta { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .pd-meta .pill { padding: 1px 7px; font-size: 11px; }
+  .pd-note { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 2px; }
+  .pd-amount { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; grid-column: 2; }
+  .pd-del { grid-column: 3; }
+  .pd-empty {
+    padding: 28px 12px; text-align: center; color: var(--muted);
+    font-size: 13px;
+  }
+  .pd-total {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 10px 14px; border-radius: 8px;
+    background: var(--bg-2); border: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .pd-total .label { color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; font-size: 11px; }
+  .pd-total .amount { font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; }
+
+  /* Admin panel */
+  .admin-user-list {
+    display: flex; flex-direction: column; gap: 8px;
+    max-height: 60vh; overflow-y: auto;
+  }
+  .admin-user {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 12px;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+  }
+  .admin-user .au-name {
+    font-size: 14px; font-weight: 600; color: var(--text);
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .admin-user .au-name .admin-tag {
+    font-size: 10px; font-weight: 600; color: #fff;
+    background: var(--black); padding: 1px 6px; border-radius: 99px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .admin-user .au-name .you-tag {
+    font-size: 10px; font-weight: 500; color: var(--muted);
+  }
+  .admin-user .au-email { font-size: 12px; color: var(--muted); grid-column: 1; }
+  .admin-user .au-stats {
+    font-size: 12px; color: var(--muted); grid-column: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .admin-user .au-toggle { grid-column: 2; grid-row: 1 / span 3; align-self: center; }
+
+  /* Toggle switch */
+  .switch {
+    position: relative;
+    display: inline-flex; align-items: center; gap: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .switch input { position: absolute; opacity: 0; pointer-events: none; }
+  .switch .track {
+    width: 38px; height: 22px; border-radius: 99px;
+    background: var(--bg-3); border: 1px solid var(--border);
+    position: relative;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .switch .track::after {
+    content: ""; position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px; border-radius: 99px;
+    background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    transition: transform 0.15s;
+  }
+  .switch input:checked + .track {
+    background: var(--black); border-color: var(--black);
+  }
+  .switch input:checked + .track::after { transform: translateX(16px); }
+  .switch input:disabled + .track { opacity: 0.5; cursor: not-allowed; }
+  .switch .label { font-size: 12px; color: var(--text-2); }
+
+  @media (max-width: 480px) {
+    .pd-item {
+      grid-template-columns: 1fr auto;
+      gap: 6px 10px;
+    }
+    .pd-main { grid-column: 1 / -1; }
+    .pd-amount { grid-column: 1; }
+    .pd-del { grid-column: 2; grid-row: 2; width: 36px; }
+    .admin-user { grid-template-columns: 1fr auto; }
+  }
+
   main {
     max-width: 1080px; margin: 0 auto;
     padding: clamp(20px, 4vw, 32px) clamp(14px, 3.5vw, 24px) clamp(48px, 8vw, 80px);
@@ -800,13 +933,13 @@ function toast(message, type = "ok") {
 }
 
 // ───── Modal ─────
-function openModal({ title, sub, bodyHTML, confirmText = "Tamam", cancelText = "Vazgeç", danger = false, dismissable = true, hideConfirm = false, onConfirm }) {
+function openModal({ title, sub, bodyHTML, confirmText = "Tamam", cancelText = "Vazgeç", danger = false, dismissable = true, hideConfirm = false, extraClass = "", onConfirm, onMount }) {
   return new Promise((resolve) => {
     const root = document.getElementById("modal-root");
     const wrap = document.createElement("div");
     wrap.className = "modal-backdrop";
     wrap.innerHTML = `
-      <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal ${extraClass}" role="dialog" aria-modal="true">
         <div class="modal-head">
           <h3>${escapeHtml(title)}</h3>
           ${sub ? `<p class="sub">${escapeHtml(sub)}</p>` : ""}
@@ -818,15 +951,18 @@ function openModal({ title, sub, bodyHTML, confirmText = "Tamam", cancelText = "
         </div>
       </div>
     `;
-    root.appendChild(wrap);
-    requestAnimationFrame(() => wrap.classList.add("show"));
-
     const cleanup = (result) => {
       wrap.classList.remove("show");
       setTimeout(() => wrap.remove(), 180);
       document.removeEventListener("keydown", onKey);
       resolve(result);
     };
+
+    root.appendChild(wrap);
+    requestAnimationFrame(() => {
+      wrap.classList.add("show");
+      if (onMount) onMount(wrap, cleanup);
+    });
     const onKey = (e) => {
       if (e.key === "Escape" && dismissable) cleanup(false);
       else if (e.key === "Enter" && document.activeElement?.tagName !== "TEXTAREA") {
@@ -1035,7 +1171,39 @@ function renderApp(user) {
   document.getElementById("settings-btn").addEventListener("click", openSettingsModal);
   document.getElementById("merge-people-btn").addEventListener("click", openMergePeopleModal);
 
+  applyMergeVisibility();
+  handleRoute();
+
   refreshData();
+}
+
+function isAdminRoute() {
+  return /^\/admin(\/|$)/.test(location.pathname);
+}
+
+function clearAdminRoute() {
+  if (isAdminRoute()) {
+    history.replaceState({}, "", "/");
+  }
+}
+
+async function handleRoute() {
+  if (!isAdminRoute()) return;
+  if (!currentUser) return;
+  if (!currentUser.is_admin) {
+    // Yetkisiz erişim — URL'i temizle, sessizce ana sayfaya
+    clearAdminRoute();
+    return;
+  }
+  await openAdminPanelModal();
+  clearAdminRoute();
+}
+
+function applyMergeVisibility() {
+  const btn = document.getElementById("merge-people-btn");
+  if (!btn || !currentUser) return;
+  const allowed = currentUser.can_merge || currentUser.is_admin;
+  btn.hidden = !allowed;
 }
 
 async function openSettingsModal() {
@@ -1115,6 +1283,7 @@ async function promptInitialDisplayName(user) {
 }
 
 let currentPeople = [];
+let currentExpenses = [];
 
 async function refreshData() {
   try {
@@ -1124,6 +1293,7 @@ async function refreshData() {
       api("/api/people"),
     ]);
     currentPeople = Array.isArray(people?.people) ? people.people : [];
+    currentExpenses = Array.isArray(list?.expenses) ? list.expenses : [];
     refreshPersonDatalist();
     renderSummary(sum);
     renderList(list);
@@ -1140,22 +1310,235 @@ function refreshPersonDatalist() {
     .join("");
 }
 
-async function openMergePeopleModal() {
-  if (!currentPeople.length) {
-    toast("Birleştirilecek kişi yok", "error");
-    return;
-  }
-  if (currentPeople.length < 2) {
-    toast("En az iki farklı kişi gerekli", "error");
+function pdItemHTML(e) {
+  const meta = [fmtDate(e.date)];
+  return `
+    <div class="pd-item" data-id="${e.id}">
+      <div class="pd-main">
+        <div class="pd-desc${e.description ? "" : " empty"}">${e.description ? escapeHtml(e.description) : "Açıklama yok"}</div>
+        <div class="pd-meta">
+          ${meta.map((m) => `<span>${escapeHtml(m)}</span>`).join(" · ")}
+          ${e.payment_method ? `<span class="pill">${escapeHtml(e.payment_method)}</span>` : ""}
+        </div>
+        ${e.note ? `<div class="pd-note">${escapeHtml(e.note)}</div>` : ""}
+      </div>
+      <div class="pd-amount">${fmtTRY(e.amount_cents)}</div>
+      <button type="button" class="row-del-btn pd-del" data-del-id="${e.id}" aria-label="Sil" title="Sil">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>
+    </div>
+  `;
+}
+
+async function openPersonDetailModal(personName) {
+  // currentExpenses zaten sadece kendi kayıtlarımız (backend filtreliyor)
+  let items = currentExpenses.filter((e) => (e.person || "") === personName);
+  if (items.length === 0) {
+    toast("Bu kişide kayıt yok", "error");
     return;
   }
 
-  const sorted = [...currentPeople].sort((a, b) =>
+  const uniqueDescriptions = [
+    ...new Set(items.map((e) => (e.description || "").trim()).filter(Boolean)),
+  ].sort();
+
+  const bodyHTML = `
+    <div class="pd-filter">
+      <input type="search" id="pd-search" list="pd-desc-list" placeholder="Açıklamada ara (yakıt, yemek, işçi…)" autocomplete="off" />
+      <datalist id="pd-desc-list">
+        ${uniqueDescriptions.map((d) => `<option value="${escapeHtml(d)}"></option>`).join("")}
+      </datalist>
+    </div>
+    <div class="pd-list" id="pd-list"></div>
+    <div class="pd-total">
+      <span class="label">Filtrelenmiş toplam</span>
+      <span class="amount" id="pd-total-amount">${fmtTRY(0)}</span>
+    </div>
+  `;
+
+  await openModal({
+    title: personName,
+    sub: `${items.length} kayıt · toplam ${fmtTRY(items.reduce((a, e) => a + Number(e.amount_cents), 0))}`,
+    bodyHTML,
+    confirmText: "Kapat",
+    hideConfirm: true,
+    cancelText: "Kapat",
+    extraClass: "modal-wide",
+    onMount: (wrap, close) => {
+      const listEl = wrap.querySelector("#pd-list");
+      const totalEl = wrap.querySelector("#pd-total-amount");
+      const search = wrap.querySelector("#pd-search");
+
+      const renderItems = () => {
+        const q = (search.value || "").trim().toLowerCase();
+        const filtered = q
+          ? items.filter((e) =>
+              (e.description || "").toLowerCase().includes(q) ||
+              (e.note || "").toLowerCase().includes(q) ||
+              (e.payment_method || "").toLowerCase().includes(q),
+            )
+          : items;
+        if (filtered.length === 0) {
+          listEl.innerHTML = '<div class="pd-empty">Eşleşen kayıt yok</div>';
+        } else {
+          listEl.innerHTML = filtered.map(pdItemHTML).join("");
+          listEl.querySelectorAll("[data-del-id]").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+              const id = Number(btn.dataset.delId);
+              const row = items.find((x) => x.id === id);
+              if (!row) return;
+              const summary = [
+                row.description ? row.description : "(Açıklama yok)",
+                fmtTRY(row.amount_cents),
+                fmtDate(row.date),
+              ].join(" · ");
+              const ok = await confirmDialog({
+                title: "Bu harcama silinsin mi?",
+                sub: summary,
+                confirmText: "Sil",
+                danger: true,
+              });
+              if (!ok) return;
+              btn.disabled = true;
+              try {
+                await api(`/api/expenses/${id}`, { method: "DELETE" });
+                items = items.filter((x) => x.id !== id);
+                currentExpenses = currentExpenses.filter((x) => x.id !== id);
+                if (items.length === 0) {
+                  toast("Silindi", "ok");
+                  refreshData();
+                  close();
+                  return;
+                }
+                toast("Silindi", "ok");
+                renderItems();
+                refreshData();
+              } catch (err) {
+                btn.disabled = false;
+                toast(err.message, "error");
+              }
+            });
+          });
+        }
+        const total = filtered.reduce((a, e) => a + Number(e.amount_cents), 0);
+        totalEl.textContent = fmtTRY(total);
+      };
+
+      search.addEventListener("input", renderItems);
+      renderItems();
+      setTimeout(() => search.focus(), 60);
+    },
+  });
+}
+
+async function openAdminPanelModal() {
+  if (!currentUser?.is_admin) return;
+
+  const bodyHTML = `
+    <div class="admin-user-list" id="admin-user-list">
+      <div class="pd-empty">Yükleniyor…</div>
+    </div>
+  `;
+
+  await openModal({
+    title: "Admin paneli",
+    sub: "Kullanıcılara 'Kişileri birleştir' yetkisi açın/kapatın",
+    bodyHTML,
+    confirmText: "Kapat",
+    hideConfirm: true,
+    cancelText: "Kapat",
+    extraClass: "modal-wide",
+    onMount: async (wrap) => {
+      const listEl = wrap.querySelector("#admin-user-list");
+      let users = [];
+      try {
+        const r = await api("/api/admin/users");
+        users = r.users || [];
+      } catch (err) {
+        listEl.innerHTML = `<div class="pd-empty">${escapeHtml(err.message)}</div>`;
+        return;
+      }
+      if (users.length === 0) {
+        listEl.innerHTML = '<div class="pd-empty">Kullanıcı yok</div>';
+        return;
+      }
+      listEl.innerHTML = users
+        .map((u) => {
+          const name = u.display_name || "(ad belirlenmedi)";
+          const isSelf = u.id === currentUser.id;
+          return `
+            <div class="admin-user" data-uid="${u.id}">
+              <div class="au-name">
+                ${escapeHtml(name)}
+                ${u.is_admin ? '<span class="admin-tag">Admin</span>' : ""}
+                ${isSelf ? '<span class="you-tag">(sen)</span>' : ""}
+              </div>
+              <div class="au-email">${escapeHtml(u.email)}</div>
+              <div class="au-stats">${u.expense_count} kayıt · ${fmtTRY(u.total_cents)}</div>
+              <label class="switch au-toggle" title="Kişileri birleştir yetkisi">
+                <input type="checkbox" data-toggle-uid="${u.id}" ${u.can_merge ? "checked" : ""} />
+                <span class="track"></span>
+                <span class="label">Birleştir</span>
+              </label>
+            </div>`;
+        })
+        .join("");
+
+      listEl.querySelectorAll("[data-toggle-uid]").forEach((input) => {
+        input.addEventListener("change", async () => {
+          const uid = Number(input.dataset.toggleUid);
+          const desired = input.checked;
+          input.disabled = true;
+          try {
+            await api(`/api/admin/users/${uid}`, {
+              method: "PATCH",
+              body: JSON.stringify({ can_merge: desired }),
+            });
+            toast("Yetki güncellendi", "ok");
+            // Eğer admin kendi can_merge'ini değiştirdiyse currentUser'ı güncelle
+            if (uid === currentUser.id) {
+              currentUser = { ...currentUser, can_merge: desired };
+              applyMergeVisibility();
+            }
+          } catch (err) {
+            input.checked = !desired;
+            toast(err.message, "error");
+          } finally {
+            input.disabled = false;
+          }
+        });
+      });
+    },
+  });
+}
+
+async function openMergePeopleModal() {
+  if (!currentUser?.can_merge && !currentUser?.is_admin) {
+    toast("Bu işlem için yetki gerekli", "error");
+    return;
+  }
+  const myName = (currentUser.display_name || "").trim();
+  if (!myName) {
+    toast("Önce adınızı belirleyin", "error");
+    return;
+  }
+
+  // Sadece kendi adı OLMAYAN isimleri kaynak olarak göster (eski varyasyonlar)
+  const candidates = currentPeople.filter(
+    (p) => String(p.person).toLowerCase() !== myName.toLowerCase(),
+  );
+
+  if (candidates.length === 0) {
+    toast("Birleştirilecek başka isim yok", "ok");
+    return;
+  }
+
+  const sorted = [...candidates].sort((a, b) =>
     String(a.person).localeCompare(String(b.person), "tr"),
   );
   const bodyHTML = `
     <div class="field">
-      <label>Birleştirilecek kişiler</label>
+      <label>Aşağıdaki isimleri <strong>${escapeHtml(myName)}</strong> altına taşı</label>
       <div class="checkbox-list" id="merge-sources">
         ${sorted
           .map(
@@ -1169,33 +1552,25 @@ async function openMergePeopleModal() {
           .join("")}
       </div>
     </div>
-    <div class="field">
-      <label>Hedef kişi (mevcut veya yeni)</label>
-      <input type="text" id="merge-target" list="person-suggestions" placeholder="ör. Ahmet" maxlength="100" autocomplete="off" />
-    </div>
-    <p class="sub" style="margin: 0; font-size: 12px; color: var(--muted);">
-      Seçilen kişilerin tüm harcamaları hedef kişinin altına taşınır. Veriler silinmez.
+    <p class="hint-text">
+      Seçilen isimlerdeki tüm kayıtlar senin adına aktarılır. Başka kullanıcıların adına atanmış kayıtlar listede görünmez.
     </p>
   `;
 
   await openModal({
     title: "Kişileri birleştir",
-    sub: "Aynı kişi farklı isimlerle girilmişse tek isim altında toplayın",
+    sub: `Hedef: ${myName}`,
     bodyHTML,
     confirmText: "Birleştir",
     onConfirm: async (wrap) => {
       const sources = Array.from(
         wrap.querySelectorAll("#merge-sources input:checked"),
       ).map((c) => c.value);
-      const target = wrap.querySelector("#merge-target").value.trim();
       if (sources.length === 0) throw new Error("En az bir kişi seçin");
-      if (!target) throw new Error("Hedef kişi adı boş olamaz");
-      const filtered = sources.filter((s) => s !== target);
-      if (filtered.length === 0) throw new Error("Kaynak ve hedef aynı kişi");
 
       const r = await api("/api/people/merge", {
         method: "POST",
-        body: JSON.stringify({ sources: filtered, target }),
+        body: JSON.stringify({ sources, target: myName }),
       });
       toast(`${r.updated} kayıt birleştirildi`, "ok");
       refreshData();
@@ -1204,20 +1579,27 @@ async function openMergePeopleModal() {
   });
 }
 
-function renderStats(elId, items, total) {
+function renderStats(elId, items, total, opts = {}) {
+  const { peopleMode = false } = opts;
   const el = document.getElementById(elId);
   if (!items.length) {
     el.innerHTML = '<div class="empty">Henüz kayıt yok</div>';
     return;
   }
+  const myName = (currentUser?.display_name || "").trim().toLowerCase();
   const max = Math.max(...items.map((p) => Number(p.total_cents)));
   el.innerHTML = items
     .map((p) => {
       const name = p.person ?? p.method ?? "—";
       const pct = max > 0 ? (Number(p.total_cents) / max) * 100 : 0;
       const share = total > 0 ? Math.round((Number(p.total_cents) / total) * 100) : 0;
+      const isSelf = peopleMode && myName && String(name).toLowerCase() === myName;
+      const classes = ["stat-row"];
+      if (isSelf) classes.push("clickable", "self");
+      else if (peopleMode) classes.push("locked");
+      const dataAttr = isSelf ? ` data-person="${escapeHtml(name)}"` : "";
       return `
-        <div class="stat-row">
+        <div class="${classes.join(" ")}"${dataAttr}>
           <div class="stat-top">
             <span class="stat-name">${escapeHtml(name)}</span>
             <span class="stat-amount">${fmtTRY(p.total_cents)}</span>
@@ -1227,10 +1609,16 @@ function renderStats(elId, items, total) {
         </div>`;
     })
     .join("");
+
+  if (peopleMode) {
+    el.querySelectorAll(".stat-row.clickable").forEach((row) => {
+      row.addEventListener("click", () => openPersonDetailModal(row.dataset.person));
+    });
+  }
 }
 
 function renderSummary({ per_person, per_method, total_cents }) {
-  renderStats("summary-people", per_person, total_cents);
+  renderStats("summary-people", per_person, total_cents, { peopleMode: true });
   renderStats("summary-methods", per_method, total_cents);
   document.getElementById("grand-total").textContent = fmtTRY(total_cents);
 }
@@ -1246,7 +1634,6 @@ function renderList({ expenses }) {
       <thead>
         <tr>
           <th>Tarih</th>
-          <th>Kim</th>
           <th>Ne için</th>
           <th>Nasıl</th>
           <th style="text-align:right">Tutar</th>
@@ -1259,7 +1646,6 @@ function renderList({ expenses }) {
             (e) => `
           <tr data-id="${e.id}">
             <td data-label="Tarih">${escapeHtml(fmtDate(e.date))}</td>
-            <td data-label="Kim">${dim(e.person)}</td>
             <td data-label="Ne için">
               ${dim(e.description)}
               ${e.note ? `<div class="note-cell">${escapeHtml(e.note)}</div>` : ""}

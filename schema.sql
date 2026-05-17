@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   password_salt TEXT NOT NULL,
   display_name TEXT,
+  is_admin INTEGER NOT NULL DEFAULT 0,
+  can_merge INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_display_name_unique
